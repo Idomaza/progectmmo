@@ -30,30 +30,33 @@ class ThreadedServer(threading.Thread):
     def run(self):
         self.sock.listen(5)
         while True:
-            client, address = self.sock.accept()
-            message = client.recv(1024)
-            message = pickle.loads(message)
-            if message[0] == 'server':
-                map_seg = ''
-                if len(self.servers_list) == 0:
-                    map_seg = mapSegment(0, 0, 3200, 2400)
-                if len(self.servers_list) == 1:
-                    map_seg = mapSegment(3200, 0, 6400, 2400)
-                if len(self.servers_list) == 2:
-                    map_seg = mapSegment(0, 2400, 3200, 4800)
-                if len(self.servers_list) == 3:
-                    map_seg = mapSegment(3200, 2400, 6400, 4800)
-                self.map_segments.append(map_seg)
-                server = listenToServer(client, (address[0], message[1]), self.player_list, self.servers_list, map_seg, self.tcp_q, self.udp_q)
-                self.servers_list.append(server)
-                server.start()
-            if message[0] == 'client':
-                index = self.which_server()
-                pos = self.map_segments[index].give_pos()
-                self.tcp_q.put([client, [self.servers_list[index].tcp_address, pos]])
-                clients = listenToClient(client, address, self.player_list, self.servers_list, self.tcp_q)
-                self.player_list.append(clients)
-                clients.start()
+            try:
+                client, address = self.sock.accept()
+                message = client.recv(1024)
+                message = pickle.loads(message)
+                if message[0] == 'server':
+                    map_seg = ''
+                    if len(self.servers_list) == 0:
+                        map_seg = mapSegment(0, 0, 3200, 2400)
+                    if len(self.servers_list) == 1:
+                        map_seg = mapSegment(3200, 0, 6400, 2400)
+                    if len(self.servers_list) == 2:
+                        map_seg = mapSegment(0, 2400, 3200, 4800)
+                    if len(self.servers_list) == 3:
+                        map_seg = mapSegment(3200, 2400, 6400, 4800)
+                    self.map_segments.append(map_seg)
+                    server = listenToServer(client, (address[0], message[1]), self.player_list, self.servers_list, map_seg, self.tcp_q, self.udp_q)
+                    self.servers_list.append(server)
+                    server.start()
+                if message[0] == 'client':
+                    index = self.which_server()
+                    pos = self.map_segments[index].give_pos()
+                    self.tcp_q.put([client, [self.servers_list[index].tcp_address, pos]])
+                    clients = listenToClient(client, address, self.player_list, self.servers_list, self.tcp_q)
+                    self.player_list.append(clients)
+                    clients.start()
+            except:
+                self.sock.close()
 
     def which_server(self):
         number_of_client = []

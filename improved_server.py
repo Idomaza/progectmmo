@@ -43,31 +43,34 @@ class ThreadedServer(threading.Thread):
     def run(self):
         moves = []
         while True:
-            data = self.sock.recvfrom(1024)
-            address = data[1]
-            pos = pickle.loads(data[0])
-            if type(pos[0][0]) == int:
-                print(pos[0])
-                self.pos_list.append(pos[0])
+            try:
+                data = self.sock.recvfrom(1024)
+                address = data[1]
+                pos = pickle.loads(data[0])
+                if type(pos[0][0]) == int:
+                    print(pos[0])
+                    self.pos_list.append(pos[0])
 
-                client = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+                    client = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
-                while True:
-                    try:
-                        port = random.randint(10000, 65535)
-                        client.bind((self.host, port))
-                        break
-                    except Exception as error:
-                        print(error)
+                    while True:
+                        try:
+                            port = random.randint(10000, 65535)
+                            client.bind((self.host, port))
+                            break
+                        except Exception as error:
+                            print(error)
 
-                self.q.put([str(port), address, self.sock])
+                    self.q.put([str(port), address, self.sock])
 
-                p = listenToClient(client, address, self.plist, self.pos_list, self.listenToServer, self.q, moves)
-                self.plist.append(p)
-                p.start()
-                moves = []
-            else:
-                moves += pos[0]
+                    p = listenToClient(client, address, self.plist, self.pos_list, self.listenToServer, self.q, moves)
+                    self.plist.append(p)
+                    p.start()
+                    moves = []
+                else:
+                    moves += pos[0]
+            except:
+                self.sock.close()
 
 
 class listenToClient(threading.Thread):
