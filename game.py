@@ -154,12 +154,14 @@ class ThreadedClient(threading.Thread):
                         self.main_server.close()
                         return
                     message = pickle.loads(self.socket.recvfrom(4096)[0])
+                    print(message)
                     if type(message) == str:
                         if message.isdigit():
                             self.port = int(message)
                     else:
                         if message[0] == 'move':
                             self.add_message_main(message[1])
+                            print(message[1])
                             self.pause = True
                         else:
                             message.pop(0)
@@ -261,4 +263,3 @@ if __name__ == '__main__':
     while g.running:
         g.main()
     pygame.quit()
-    print(g.client.socket, g.client.main_server)

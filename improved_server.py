@@ -46,9 +46,9 @@ class ThreadedServer(threading.Thread):
             data = self.sock.recvfrom(1024)
             address = data[1]
             pos = pickle.loads(data[0])
-            if type(pos[0]) == int:
-                print(pos)
-                self.pos_list.append(pos)
+            if type(pos[0][0]) == int:
+                print(pos[0])
+                self.pos_list.append(pos[0])
 
                 client = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
@@ -98,6 +98,8 @@ class listenToClient(threading.Thread):
         print('running ', self.address)
         while True:
             try:
+                self.check_edge()
+                self.check_out()
                 data = self.client.recvfrom(self.size)
                 data = pickle.loads(data[0])
                 massage = data[0]
@@ -160,10 +162,9 @@ class listenToClient(threading.Thread):
                 else:
                     if self.shot_dict.get(move[0]):
                         self.shot_dict.pop(move[0])
-        self.check_edge()
-        self.check_out()
 
     def calc_other_players(self):
+        print(self.pos_list)
         personal_pos = ['positions']
         for pos in self.pos_list:
             if pos != ['', '']:
@@ -196,7 +197,8 @@ class listenToClient(threading.Thread):
                         y = 240 + dy
                     if -32 < y < 480 and -32 < x < 640:
                         personal_pos.append(['s', x, y])
-        self.q.put([personal_pos, self.address, self.client])
+        if personal_pos != ['positions']:
+            self.q.put([personal_pos, self.address, self.client])
 
     def check_out(self):
         if self.pos != '':
@@ -267,9 +269,7 @@ class listenToServer(threading.Thread):
         while True:
             try:
                 data = self.udp_server.recvfrom(self.size)
-                print(data)
                 massage = pickle.loads(data[0])
-                print(massage)
             except Exception as error:
                 print(error)
                 self.udp_server.close()
