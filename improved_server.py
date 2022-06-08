@@ -101,8 +101,6 @@ class listenToClient(threading.Thread):
         print('running ', self.address)
         while True:
             try:
-                self.check_edge()
-                self.check_out()
                 data = self.client.recvfrom(self.size)
                 data = pickle.loads(data[0])
                 massage = data[0]
@@ -132,6 +130,7 @@ class listenToClient(threading.Thread):
         while self.running:
             self.change_location()
             self.calc_other_players()
+            self.check_out()
         return
 
     def change_location(self):
@@ -167,7 +166,6 @@ class listenToClient(threading.Thread):
                         self.shot_dict.pop(move[0])
 
     def calc_other_players(self):
-        print(self.pos_list)
         personal_pos = ['positions']
         for pos in self.pos_list:
             if pos != ['', '']:
@@ -214,20 +212,6 @@ class listenToClient(threading.Thread):
                         self.plist[i] = ''
                         self.pos_list[i] = ['', '']
                 self.client.close()
-
-    def check_edge(self):
-        if self.pos != '':
-            edge_dict = {}
-            for i in range(len(self.plist)):
-                if self.plist[i] == self:
-                    if self.server.map_seg.is_edge(self.pos):
-                        edge_dict['p' + str(i)] = self.pos
-                    break
-            for pos in self.shot_dict:
-                if self.server.map_seg.is_edge(self.shot_dict[pos]):
-                    edge_dict[pos] = self.shot_dict[pos]
-            if edge_dict != {}:
-                self.server.udp_q.put([edge_dict, self.server.udp_address, self.server.udp_server])
 
 
 class listenToServer(threading.Thread):

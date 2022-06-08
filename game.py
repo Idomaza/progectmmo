@@ -108,6 +108,7 @@ class Game:
             x = 32 + pos[1]
         if pos[2] < 0:
             y = 32 + pos[2]
+
         if pos[0] == 'p':
             Other_Player(self, x, y, [pos[1], pos[2]])
         else:
